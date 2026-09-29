@@ -1,0 +1,28 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Maven
+target/
+.classpath
+.project
+.settings/
+*.class
+*.jar
+*.war
+
+# Environment
+.env
+*.properties.local
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
