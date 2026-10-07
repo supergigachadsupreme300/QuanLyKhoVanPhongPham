@@ -1,50 +1,35 @@
 //Bảo
-package com.quanlykhov.model; 
+package com.quanlykhov.model;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "employees") 
+@Table(name = "NhanVien")
 public class Employee {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "MaNV", length = 20)
+    private String id; 
+    @Column(name = "HoTen", length = 100, nullable = false)
     private String fullName;
 
-    @Column(name = "email")
-    private String email;
-
-    @Column(name = "phone")
+    @Column(name = "Sdt", length = 15)
     private String phone;
 
-    @Column(name = "department")
-    private String department;
-
-    @Column(name = "salary")
-    private Double salary;
-
-  
     public Employee() {
     }
 
-   
-    public Employee(String fullName, String email, String phone, String department, Double salary) {
+    public Employee(String id, String fullName, String phone) {
+        this.id = id;
         this.fullName = fullName;
-        this.email = email;
         this.phone = phone;
-        this.department = department;
-        this.salary = salary;
     }
 
-
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -56,14 +41,6 @@ public class Employee {
         this.fullName = fullName;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -71,19 +48,7 @@ public class Employee {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-
-    public String getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(String department) {
-        this.department = department;
-    }
-
-    public Double getSalary() {
-        return salary;
-    }
-
+}
     public void setSalary(Double salary) {
         this.salary = salary;
     }
