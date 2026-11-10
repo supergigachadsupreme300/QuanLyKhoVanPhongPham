@@ -33,3 +33,9 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+-- Employees Table
+CREATE TABLE IF NOT EXISTS employees (
+    id VARCHAR(20) PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15)
+);
