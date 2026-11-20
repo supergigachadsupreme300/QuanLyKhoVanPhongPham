@@ -49,7 +49,3 @@ public class Employee {
         this.phone = phone;
     }
 }
-    public void setSalary(Double salary) {
-        this.salary = salary;
-    }
-}
