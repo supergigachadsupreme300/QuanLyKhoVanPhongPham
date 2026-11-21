@@ -118,6 +118,42 @@ public class SanPhamController {
         }
     }
 
+    // Xử lý yêu cầu DELETE /api/san-pham/{maSP}: xóa mềm sản phẩm (đổi trạng thái sang "Ngừng kinh doanh")
+    @DeleteMapping("/{maSP}")
+    public ResponseEntity<?> deleteSanPham(@PathVariable String maSP) {
+        Optional<SanPham> ketQua = sanPhamRepository.findById(maSP);
+        if (!ketQua.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy sản phẩm có mã: " + maSP);
+        }
+
+        SanPham sanPhamHienTai = ketQua.get();
+        if ("Ngừng kinh doanh".equals(sanPhamHienTai.getTrangThai())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Sản phẩm đã ở trạng thái Ngừng kinh doanh!");
+        }
+
+        sanPhamHienTai.setTrangThai("Ngừng kinh doanh");
+        SanPham daLuu = sanPhamRepository.save(sanPhamHienTai);
+        return ResponseEntity.ok(daLuu);
+    }
+
+    // Xử lý yêu cầu PUT /api/san-pham/{maSP}/khoi-phuc: khôi phục sản phẩm về trạng thái "Đang kinh doanh"
+    @PutMapping("/{maSP}/khoi-phuc")
+    public ResponseEntity<?> restoreSanPham(@PathVariable String maSP) {
+        Optional<SanPham> ketQua = sanPhamRepository.findById(maSP);
+        if (!ketQua.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy sản phẩm có mã: " + maSP);
+        }
+
+        SanPham sanPhamHienTai = ketQua.get();
+        if ("Đang kinh doanh".equals(sanPhamHienTai.getTrangThai())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Sản phẩm đang ở trạng thái Đang kinh doanh!");
+        }
+
+        sanPhamHienTai.setTrangThai("Đang kinh doanh");
+        SanPham daLuu = sanPhamRepository.save(sanPhamHienTai);
+        return ResponseEntity.ok(daLuu);
+    }
+
     // Hàm phụ kiểm tra các quy tắc dữ liệu chung khi thêm và sửa sản phẩm
     private String kiemTraDuLieuSanPham(SanPham sp) {
         if (sp.getTenSP() == null || sp.getTenSP().trim().isEmpty()) {
