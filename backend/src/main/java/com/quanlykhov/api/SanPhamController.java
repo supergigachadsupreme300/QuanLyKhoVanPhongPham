@@ -3,6 +3,7 @@ package com.quanlykhov.api;
 import com.quanlykhov.dao.SanPhamRepository;
 import com.quanlykhov.model.SanPham;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,71 @@ public class SanPhamController {
     @GetMapping
     public List<SanPham> getAllSanPham() {
         return sanPhamRepository.findAll();
+    }
+
+    // Xử lý yêu cầu GET /api/san-pham/tim-kiem: tìm kiếm, lọc và sắp xếp sản phẩm
+    @GetMapping("/tim-kiem")
+    public ResponseEntity<?> timKiemSanPham(
+            @RequestParam(required = false) String ten,
+            @RequestParam(required = false) BigDecimal giaTu,
+            @RequestParam(required = false) BigDecimal giaDen,
+            @RequestParam(required = false) String maNCC,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String sapXepTheo,
+            @RequestParam(required = false) String thuTu) {
+
+        // Kiểm tra giá từ và giá đến không được âm
+        if (giaTu != null && giaTu.compareTo(BigDecimal.ZERO) < 0) {
+            return ResponseEntity.badRequest().body("Giá từ không được âm!");
+        }
+        if (giaDen != null && giaDen.compareTo(BigDecimal.ZERO) < 0) {
+            return ResponseEntity.badRequest().body("Giá đến không được âm!");
+        }
+
+        // Kiểm tra giá từ không được lớn hơn giá đến
+        if (giaTu != null && giaDen != null && giaTu.compareTo(giaDen) > 0) {
+            return ResponseEntity.badRequest().body("Giá từ không được lớn hơn giá đến!");
+        }
+
+        // Đổi giá trị sapXepTheo sang tên thuộc tính trong lớp SanPham
+        String thuocTinhSapXep = "maSP";
+        if (sapXepTheo != null && !sapXepTheo.trim().isEmpty()) {
+            if ("ten".equals(sapXepTheo)) {
+                thuocTinhSapXep = "tenSP";
+            } else if ("gia".equals(sapXepTheo)) {
+                thuocTinhSapXep = "giaBan";
+            } else if ("ton".equals(sapXepTheo)) {
+                thuocTinhSapXep = "slTonKho";
+            } else if ("nhacungcap".equals(sapXepTheo)) {
+                thuocTinhSapXep = "maNCC";
+            } else {
+                return ResponseEntity.badRequest().body("Tham số sapXepTheo không hợp lệ! Chỉ nhận: ten, gia, ton, nhacungcap.");
+            }
+        }
+
+        // Kiểm tra và tạo chiều sắp xếp (tăng dần hoặc giảm dần)
+        Sort sapXep;
+        if (thuTu == null || thuTu.trim().isEmpty() || "tang".equals(thuTu)) {
+            sapXep = Sort.by(Sort.Direction.ASC, thuocTinhSapXep);
+        } else if ("giam".equals(thuTu)) {
+            sapXep = Sort.by(Sort.Direction.DESC, thuocTinhSapXep);
+        } else {
+            return ResponseEntity.badRequest().body("Tham số thuTu không hợp lệ! Chỉ nhận: tang, giam.");
+        }
+
+        // Nếu chuỗi tìm kiếm rỗng thì đổi thành null để bỏ qua điều kiện đó
+        if (ten != null && ten.trim().isEmpty()) {
+            ten = null;
+        }
+        if (maNCC != null && maNCC.trim().isEmpty()) {
+            maNCC = null;
+        }
+        if (trangThai != null && trangThai.trim().isEmpty()) {
+            trangThai = null;
+        }
+
+        List<SanPham> danhSach = sanPhamRepository.timKiemSanPham(ten, giaTu, giaDen, maNCC, trangThai, sapXep);
+        return ResponseEntity.ok(danhSach);
     }
 
     // Xử lý yêu cầu GET /api/san-pham/{maSP}: trả về 1 sản phẩm theo mã, không có thì trả lỗi 404
