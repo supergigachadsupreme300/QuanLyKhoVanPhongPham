@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,6 +53,70 @@ public class PhieuXuatController {
     @GetMapping
     public List<PhieuXuatKho> getAllPhieuXuat() {
         return phieuXuatKhoRepository.findAllByOrderByNgayXuatDesc();
+    }
+
+    // Xử lý yêu cầu GET /api/phieu-xuat/lich-su/ngay: lọc tất cả phiếu xuất theo một ngày (yyyy-MM-dd)
+    @GetMapping("/lich-su/ngay")
+    public ResponseEntity<?> getLichSuTheoNgay(@RequestParam(required = false) String ngay) {
+        String loi = kiemTraNgay(ngay);
+        if (loi != null) {
+            return ResponseEntity.badRequest().body(loi);
+        }
+
+        LocalDate ngayCanXem = LocalDate.parse(ngay.trim());
+        // Tính khoảng thời gian [00:00 của ngày đó, 00:00 của ngày hôm sau)
+        LocalDateTime tuNgay = ngayCanXem.atStartOfDay();
+        LocalDateTime denNgay = ngayCanXem.plusDays(1).atStartOfDay();
+
+        List<PhieuXuatKho> danhSach = phieuXuatKhoRepository
+                .findByNgayXuatGreaterThanEqualAndNgayXuatLessThanOrderByNgayXuatDesc(tuNgay, denNgay);
+        return ResponseEntity.ok(danhSach);
+    }
+
+    // Xử lý yêu cầu GET /api/phieu-xuat/lich-su/thang: lọc tất cả phiếu xuất theo tháng và năm
+    @GetMapping("/lich-su/thang")
+    public ResponseEntity<?> getLichSuTheoThang(@RequestParam(required = false) String thang,
+                                                @RequestParam(required = false) String nam) {
+        String loiThang = kiemTraThang(thang);
+        if (loiThang != null) {
+            return ResponseEntity.badRequest().body(loiThang);
+        }
+        String loiNam = kiemTraNam(nam);
+        if (loiNam != null) {
+            return ResponseEntity.badRequest().body(loiNam);
+        }
+
+        int giaTriThang = Integer.parseInt(thang.trim());
+        int giaTriNam = Integer.parseInt(nam.trim());
+
+        // Tính khoảng thời gian [ngày 1 của tháng, ngày 1 của tháng sau)
+        LocalDate dauThang = LocalDate.of(giaTriNam, giaTriThang, 1);
+        LocalDateTime tuNgay = dauThang.atStartOfDay();
+        LocalDateTime denNgay = dauThang.plusMonths(1).atStartOfDay();
+
+        List<PhieuXuatKho> danhSach = phieuXuatKhoRepository
+                .findByNgayXuatGreaterThanEqualAndNgayXuatLessThanOrderByNgayXuatDesc(tuNgay, denNgay);
+        return ResponseEntity.ok(danhSach);
+    }
+
+    // Xử lý yêu cầu GET /api/phieu-xuat/lich-su/nam: lọc tất cả phiếu xuất theo năm
+    @GetMapping("/lich-su/nam")
+    public ResponseEntity<?> getLichSuTheoNam(@RequestParam(required = false) String nam) {
+        String loiNam = kiemTraNam(nam);
+        if (loiNam != null) {
+            return ResponseEntity.badRequest().body(loiNam);
+        }
+
+        int giaTriNam = Integer.parseInt(nam.trim());
+
+        // Tính khoảng thời gian [01/01 của năm đó, 01/01 của năm sau)
+        LocalDate dauNam = LocalDate.of(giaTriNam, 1, 1);
+        LocalDateTime tuNgay = dauNam.atStartOfDay();
+        LocalDateTime denNgay = dauNam.plusYears(1).atStartOfDay();
+
+        List<PhieuXuatKho> danhSach = phieuXuatKhoRepository
+                .findByNgayXuatGreaterThanEqualAndNgayXuatLessThanOrderByNgayXuatDesc(tuNgay, denNgay);
+        return ResponseEntity.ok(danhSach);
     }
 
     // Xử lý yêu cầu GET /api/phieu-xuat/{maPX}: trả về 1 phiếu xuất kèm danh sách chi tiết của phiếu đó
@@ -347,6 +413,59 @@ public class PhieuXuatController {
         }
 
         return ketQua;
+    }
+
+    // Kiểm tra tham số ngày có đúng định dạng yyyy-MM-dd và hợp lệ theo lịch hay không
+    private String kiemTraNgay(String ngay) {
+        String chuoiNgay = chuanHoaChuoi(ngay);
+        if (chuoiNgay == null) {
+            return "Ngày không được để trống! Vui lòng nhập theo định dạng yyyy-MM-dd (ví dụ: 2026-11-08).";
+        }
+        if (chuoiNgay.length() != 10) {
+            return "Ngày không đúng định dạng yyyy-MM-dd (ví dụ: 2026-11-08)!";
+        }
+        try {
+            LocalDate.parse(chuoiNgay);
+        } catch (DateTimeParseException e) {
+            return "Ngày không hợp lệ! Vui lòng nhập đúng định dạng yyyy-MM-dd (ví dụ: 2026-11-08).";
+        }
+        return null;
+    }
+
+    // Kiểm tra tham số tháng có phải số nguyên từ 1 đến 12 hay không
+    private String kiemTraThang(String thang) {
+        String chuoiThang = chuanHoaChuoi(thang);
+        if (chuoiThang == null) {
+            return "Tháng không được để trống!";
+        }
+        int giaTriThang;
+        try {
+            giaTriThang = Integer.parseInt(chuoiThang);
+        } catch (NumberFormatException e) {
+            return "Tháng phải là số nguyên (từ 1 đến 12)!";
+        }
+        if (giaTriThang < 1 || giaTriThang > 12) {
+            return "Tháng không hợp lệ! Tháng phải nằm trong khoảng từ 1 đến 12.";
+        }
+        return null;
+    }
+
+    // Kiểm tra tham số năm có phải số nguyên hợp lý (từ 2000 đến 2100) hay không
+    private String kiemTraNam(String nam) {
+        String chuoiNam = chuanHoaChuoi(nam);
+        if (chuoiNam == null) {
+            return "Năm không được để trống!";
+        }
+        int giaTriNam;
+        try {
+            giaTriNam = Integer.parseInt(chuoiNam);
+        } catch (NumberFormatException e) {
+            return "Năm phải là số nguyên (từ 2000 đến 2100)!";
+        }
+        if (giaTriNam < 2000 || giaTriNam > 2100) {
+            return "Năm không hợp lệ! Năm phải nằm trong khoảng từ 2000 đến 2100.";
+        }
+        return null;
     }
 
     // Cắt khoảng trắng hai đầu chuỗi, trả về null nếu chuỗi rỗng
