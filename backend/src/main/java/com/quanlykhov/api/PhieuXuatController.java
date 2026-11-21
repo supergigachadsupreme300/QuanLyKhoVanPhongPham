@@ -116,6 +116,95 @@ public class PhieuXuatController {
         return ResponseEntity.status(HttpStatus.CREATED).body(phanHoi);
     }
 
+    // Xử lý yêu cầu PUT /api/phieu-xuat/{maPX}/huy: hủy phiếu xuất kho và cộng trả lại tồn kho sản phẩm
+    // @Transactional đảm bảo việc đổi trạng thái phiếu và cộng lại tồn kho xảy ra cùng lúc (hoặc cùng hủy bỏ nếu có lỗi)
+    @Transactional
+    @PutMapping("/{maPX}/huy")
+    public ResponseEntity<?> huyPhieuXuat(@PathVariable String maPX) {
+        // Bước 1: Tìm phiếu xuất theo mã; không thấy thì trả lỗi 404
+        Optional<PhieuXuatKho> ketQua = phieuXuatKhoRepository.findById(maPX);
+        if (!ketQua.isPresent()) {
+            return ResponseEntity.status(404).body("Không tìm thấy phiếu xuất có mã: " + maPX);
+        }
+
+        // Bước 2: Kiểm tra trạng thái phiếu (chỉ được hủy phiếu đang ở trạng thái Hoàn thành)
+        PhieuXuatKho phieuXuat = ketQua.get();
+        String loiTrangThai = kiemTraTrangThaiDeHuy(phieuXuat);
+        if (loiTrangThai != null) {
+            return ResponseEntity.badRequest().body(loiTrangThai);
+        }
+
+        // Bước 3: Lấy toàn bộ dòng chi tiết của phiếu xuất
+        List<ChiTietPhieuXuat> danhSachChiTiet = chiTietPhieuXuatRepository.findByMaPX(maPX);
+
+        // Bước 4: Tìm sẵn các sản phẩm trong chi tiết trước khi cập nhật dữ liệu
+        List<SanPham> danhSachSanPham = new ArrayList<>();
+        String loiSanPham = layDanhSachSanPhamCanHoanTon(danhSachChiTiet, danhSachSanPham);
+        if (loiSanPham != null) {
+            return ResponseEntity.badRequest().body(loiSanPham);
+        }
+
+        // Bước 5: Đổi trạng thái phiếu thành 'Hủy' (giữ nguyên ghi chú, không xóa phiếu hay chi tiết)
+        phieuXuat.setTrangThai("Hủy");
+        PhieuXuatKho phieuDaCapNhat = phieuXuatKhoRepository.save(phieuXuat);
+
+        // Bước 6: Cộng trả lại số lượng đã xuất vào tồn kho cho từng sản phẩm
+        congLaiTonKhoChoSanPham(danhSachChiTiet, danhSachSanPham);
+
+        // Bước 7: Đóng gói kết quả trả về gồm phiếu đã hủy và danh sách chi tiết
+        Map<String, Object> phanHoi = new LinkedHashMap<>();
+        phanHoi.put("phieuXuat", phieuDaCapNhat);
+        phanHoi.put("chiTiet", danhSachChiTiet);
+        return ResponseEntity.ok(phanHoi);
+    }
+
+    // Kiểm tra phiếu xuất có đủ điều kiện để hủy hay không; trả về câu báo lỗi nếu sai, null nếu hợp lệ
+    private String kiemTraTrangThaiDeHuy(PhieuXuatKho phieuXuat) {
+        String trangThai = phieuXuat.getTrangThai();
+        if ("Hủy".equals(trangThai)) {
+            return "Phiếu xuất " + phieuXuat.getMaPX() + " đã bị hủy trước đó, không thể hủy lần nữa!";
+        }
+        if (!"Hoàn thành".equals(trangThai)) {
+            return "Chỉ được hủy phiếu xuất đang ở trạng thái Hoàn thành!";
+        }
+        return null;
+    }
+
+    // Tìm toàn bộ sản phẩm có trong chi tiết phiếu xuất (kể cả sản phẩm đã ngừng kinh doanh)
+    private String layDanhSachSanPhamCanHoanTon(List<ChiTietPhieuXuat> danhSachChiTiet,
+                                                List<SanPham> ketQuaSanPham) {
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietPhieuXuat dong = danhSachChiTiet.get(i);
+            Optional<SanPham> spOpt = sanPhamRepository.findById(dong.getMaSP());
+            if (!spOpt.isPresent()) {
+                return "Không tìm thấy sản phẩm có mã: " + dong.getMaSP();
+            }
+            ketQuaSanPham.add(spOpt.get());
+        }
+        return null;
+    }
+
+    // Cộng trả lại số lượng đã xuất vào tồn kho cho từng sản phẩm trong phiếu bị hủy
+    private void congLaiTonKhoChoSanPham(List<ChiTietPhieuXuat> danhSachChiTiet,
+                                         List<SanPham> danhSachSanPham) {
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietPhieuXuat dong = danhSachChiTiet.get(i);
+            SanPham sp = danhSachSanPham.get(i);
+
+            int tonHienTai = 0;
+            if (sp.getSlTonKho() != null) {
+                tonHienTai = sp.getSlTonKho();
+            }
+            int slXuat = 0;
+            if (dong.getSlXuat() != null) {
+                slXuat = dong.getSlXuat();
+            }
+
+            sp.setSlTonKho(tonHienTai + slXuat);
+            sanPhamRepository.save(sp);
+        }
+    }
+
     // Kiểm tra thông tin chung của phiếu xuất; trả về câu thông báo lỗi nếu sai, null nếu hợp lệ
     private String kiemTraThongTinPhieu(PhieuXuatRequest request) {
         if (request == null) {
