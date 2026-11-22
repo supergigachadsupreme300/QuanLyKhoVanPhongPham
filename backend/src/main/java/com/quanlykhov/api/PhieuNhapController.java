@@ -160,4 +160,54 @@ public class PhieuNhapController {
             return ResponseEntity.badRequest().body("Mã nhân viên không tồn tại");
         }
     }
+
+    // Xử lý yêu cầu PUT /api/phieu-nhap/{maPN}/huy: hủy phiếu nhập kho và trừ lại tồn kho sản phẩm
+    @PutMapping("/{maPN}/huy")
+    public ResponseEntity<?> huyPhieuNhap(@PathVariable("maPN") String maPN) {
+        // Kiểm tra 1: Tìm phiếu nhập theo mã, nếu không thấy thì trả lỗi 404
+        Optional<PhieuNhapKho> ketQuaPhieu = phieuNhapKhoRepository.findById(maPN);
+        if (!ketQuaPhieu.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy phiếu nhập có mã: " + maPN);
+        }
+
+        PhieuNhapKho phieuNhap = ketQuaPhieu.get();
+
+        // Kiểm tra 2: Nếu phiếu đã có trạng thái "Hủy" thì trả lỗi 409, không hủy lần nữa
+        if ("Hủy".equals(phieuNhap.getTrangThai())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Phiếu nhập có mã " + maPN + " đã được hủy trước đó!");
+        }
+
+        // Kiểm tra 3: Với từng dòng chi tiết, tồn kho hiện tại phải lớn hơn hoặc bằng SLThucNhap
+        List<ChiTietPhieuNhap> danhSachChiTiet = chiTietPhieuNhapRepository.findByMaPN(maPN);
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietPhieuNhap dong = danhSachChiTiet.get(i);
+            String maSP = dong.getMaSP();
+            int slCanTru = 0;
+            if (dong.getSlThucNhap() != null) {
+                slCanTru = dong.getSlThucNhap();
+            }
+
+            Optional<SanPham> ketQuaSP = sanPhamRepository.findById(maSP);
+            if (!ketQuaSP.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy sản phẩm có mã: " + maSP);
+            }
+
+            SanPham sanPham = ketQuaSP.get();
+            int tonHienTai = 0;
+            if (sanPham.getSlTonKho() != null) {
+                tonHienTai = sanPham.getSlTonKho();
+            }
+
+            // Nếu tồn kho hiện tại nhỏ hơn số lượng thực nhập cần trừ lại thì báo lỗi 409 và dừng ngay
+            if (tonHienTai < slCanTru) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Không thể hủy phiếu: sản phẩm " + maSP + " chỉ còn tồn " + tonHienTai
+                                + " nhưng cần trừ lại " + slCanTru + " (hàng đã được xuất bớt)");
+            }
+        }
+
+        // Sau khi kiểm tra đủ tất cả các dòng, gọi Service để đổi trạng thái phiếu và trừ lại tồn kho
+        PhieuNhapKho phieuDaHuy = phieuNhapService.huyPhieuNhap(phieuNhap, danhSachChiTiet);
+        return ResponseEntity.ok(phieuDaHuy);
+    }
 }

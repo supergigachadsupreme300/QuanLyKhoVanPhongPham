@@ -108,4 +108,26 @@ public class PhieuNhapService {
 
         return phieuDaLuu;
     }
+
+    // @Transactional: đảm bảo đổi trạng thái phiếu sang Hủy và giảm tồn kho cùng thành công hoặc cùng thất bại
+    @Transactional
+    public PhieuNhapKho huyPhieuNhap(PhieuNhapKho phieuNhap, List<ChiTietPhieuNhap> danhSachChiTiet) {
+        // Bước 1: Đổi trạng thái của phiếu nhập thành "Hủy" và lưu lại
+        phieuNhap.setTrangThai("Hủy");
+        PhieuNhapKho phieuDaHuy = phieuNhapKhoRepository.save(phieuNhap);
+
+        // Bước 2: Duyệt từng dòng chi tiết để giảm số lượng tồn kho sản phẩm đúng bằng SLThucNhap
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietPhieuNhap dong = danhSachChiTiet.get(i);
+            String maSP = dong.getMaSP();
+            int slThucNhap = dong.getSlThucNhap();
+
+            SanPham sanPham = sanPhamRepository.findById(maSP).get();
+            int tonHienTai = sanPham.getSlTonKho();
+            sanPham.setSlTonKho(tonHienTai - slThucNhap);
+            sanPhamRepository.save(sanPham);
+        }
+
+        return phieuDaHuy;
+    }
 }
