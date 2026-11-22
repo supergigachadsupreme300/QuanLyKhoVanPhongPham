@@ -2,6 +2,7 @@ package com.quanlykhov.api;
 
 import com.quanlykhov.dao.NhaCCRepository;
 import com.quanlykhov.model.NhaCC;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,56 @@ public class NhaCCController {
     @GetMapping
     public List<NhaCC> getAllNhaCC() {
         return nhaCCRepository.findAll();
+    }
+
+    // Xử lý yêu cầu GET /api/nha-cung-cap/tim-kiem: tìm kiếm, lọc và sắp xếp nhà cung cấp
+    @GetMapping("/tim-kiem")
+    public ResponseEntity<?> timKiemNhaCC(
+            @RequestParam(required = false) String ten,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String sapXepTheo,
+            @RequestParam(required = false) String thuTu) {
+
+        // Kiểm tra giá trị trangThai nếu được gửi lên
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            if (!"Hoạt động".equals(trangThai) && !"Ngừng hợp tác".equals(trangThai)) {
+                return ResponseEntity.badRequest().body("Tham số trangThai không hợp lệ! Chỉ nhận: Hoạt động, Ngừng hợp tác.");
+            }
+        } else {
+            trangThai = null;
+        }
+
+        // Đổi giá trị sapXepTheo sang tên thuộc tính trong lớp NhaCC
+        String thuocTinhSapXep = "maNCC";
+        if (sapXepTheo != null && !sapXepTheo.trim().isEmpty()) {
+            if ("ma".equals(sapXepTheo)) {
+                thuocTinhSapXep = "maNCC";
+            } else if ("ten".equals(sapXepTheo)) {
+                thuocTinhSapXep = "tenNCC";
+            } else if ("trangthai".equals(sapXepTheo)) {
+                thuocTinhSapXep = "trangThai";
+            } else {
+                return ResponseEntity.badRequest().body("Tham số sapXepTheo không hợp lệ! Chỉ nhận: ma, ten, trangthai.");
+            }
+        }
+
+        // Kiểm tra và tạo chiều sắp xếp (tăng dần hoặc giảm dần)
+        Sort sapXep;
+        if (thuTu == null || thuTu.trim().isEmpty() || "tang".equals(thuTu)) {
+            sapXep = Sort.by(Sort.Direction.ASC, thuocTinhSapXep);
+        } else if ("giam".equals(thuTu)) {
+            sapXep = Sort.by(Sort.Direction.DESC, thuocTinhSapXep);
+        } else {
+            return ResponseEntity.badRequest().body("Tham số thuTu không hợp lệ! Chỉ nhận: tang, giam.");
+        }
+
+        // Nếu chuỗi tìm kiếm rỗng thì đổi thành null để bỏ qua điều kiện đó
+        if (ten != null && ten.trim().isEmpty()) {
+            ten = null;
+        }
+
+        List<NhaCC> danhSach = nhaCCRepository.timKiemNhaCC(ten, trangThai, sapXep);
+        return ResponseEntity.ok(danhSach);
     }
 
     // Xử lý yêu cầu GET /api/nha-cung-cap/{maNCC}: trả về 1 nhà cung cấp theo mã, không có thì trả lỗi 404
