@@ -61,6 +61,28 @@ public interface PhieuNhapBaoCaoRepository extends JpaRepository<PhieuNhapKho, S
         BigDecimal getTongTien();
     }
 
+    // Interface projection hứng thông tin đầu phiếu của 1 phiếu nhập để in phiếu
+    public interface ThongTinPhieuNhapInProjection {
+        String getMaPN();
+        LocalDateTime getNgayNhap();
+        String getTrangThai();
+        String getGhiChu();
+        String getMaNCC();
+        String getTenNCC();
+        String getMaNV();
+        String getHoTenNV();
+    }
+
+    // Interface projection hứng danh sách các dòng chi tiết sản phẩm của 1 phiếu nhập để in phiếu
+    public interface ChiTietPhieuNhapInProjection {
+        String getMaSP();
+        String getTenSP();
+        String getDonViTinh();
+        Integer getSlTheoChungTu();
+        Integer getSlThucNhap();
+        BigDecimal getGiaNhap();
+    }
+
     // Truy vấn lấy danh sách lịch sử phiếu nhập trong khoảng thời gian [tuNgay, denNgay),
     // nối với bảng NhaCC để lấy tên nhà cung cấp, nối với NhanVien để lấy họ tên nhân viên,
     // nối trái (LEFT JOIN) với ChiTietPhieuNhap để tính tổng tiền, tổng số lượng theo chứng từ và tổng số lượng thực nhập của từng phiếu
@@ -160,4 +182,36 @@ public interface PhieuNhapBaoCaoRepository extends JpaRepository<PhieuNhapKho, S
             @Param("tuNgay") LocalDateTime tuNgay,
             @Param("denNgay") LocalDateTime denNgay
     );
+
+    // Truy vấn lấy thông tin đầu phiếu của 1 phiếu nhập theo maPN (nối với bảng NhaCC để lấy tên nhà cung cấp và NhanVien để lấy họ tên nhân viên)
+    @Query(value = "SELECT "
+            + "pn.MaPN AS maPN, "
+            + "pn.NgayNhap AS ngayNhap, "
+            + "pn.TrangThai AS trangThai, "
+            + "pn.GhiChu AS ghiChu, "
+            + "pn.MaNCC AS maNCC, "
+            + "ncc.TenNCC AS tenNCC, "
+            + "pn.MaNV AS maNV, "
+            + "nv.HoTen AS hoTenNV "
+            + "FROM PhieuNhapKho pn "
+            + "JOIN NhaCC ncc ON pn.MaNCC = ncc.MaNCC "
+            + "JOIN NhanVien nv ON pn.MaNV = nv.MaNV "
+            + "WHERE pn.MaPN = :maPN",
+            nativeQuery = true)
+    ThongTinPhieuNhapInProjection layThongTinPhieuNhapDeIn(@Param("maPN") String maPN);
+
+    // Truy vấn lấy các dòng chi tiết của 1 phiếu nhập theo maPN (nối với bảng SanPham để lấy tên sản phẩm và đơn vị tính, sắp theo maSP tăng dần)
+    @Query(value = "SELECT "
+            + "ct.MaSP AS maSP, "
+            + "sp.TenSP AS tenSP, "
+            + "sp.DonViTinh AS donViTinh, "
+            + "ct.SLTheoChungTu AS slTheoChungTu, "
+            + "ct.SLThucNhap AS slThucNhap, "
+            + "ct.GiaNhap AS giaNhap "
+            + "FROM ChiTietPhieuNhap ct "
+            + "JOIN SanPham sp ON ct.MaSP = sp.MaSP "
+            + "WHERE ct.MaPN = :maPN "
+            + "ORDER BY ct.MaSP ASC",
+            nativeQuery = true)
+    List<ChiTietPhieuNhapInProjection> layChiTietPhieuNhapDeIn(@Param("maPN") String maPN);
 }

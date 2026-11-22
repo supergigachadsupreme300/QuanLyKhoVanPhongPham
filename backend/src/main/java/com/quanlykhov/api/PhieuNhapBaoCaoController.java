@@ -31,7 +31,8 @@ public class PhieuNhapBaoCaoController {
         this.phieuNhapBaoCaoRepository = phieuNhapBaoCaoRepository;
     }
 
-    // Hàm kiểm tra tham số nam và thang: nếu có lỗi thì trả về câu thông báo lỗi tiếng Việt, nếu hợp lệ thì trả về null
+    // Hàm kiểm tra tham số nam và thang: nếu có lỗi thì trả về câu thông báo lỗi
+    // tiếng Việt, nếu hợp lệ thì trả về null
     private String kiemTraNamThang(String namStr, String thangStr) {
         if (namStr == null || namStr.trim().isEmpty()) {
             return "Vui lòng nhập tham số năm (nam)!";
@@ -64,7 +65,8 @@ public class PhieuNhapBaoCaoController {
         return null;
     }
 
-    // Hàm tính mốc thời gian bắt đầu (tuNgay) dựa vào năm và tháng (nếu không chọn tháng thì tính từ ngày 1/1 của năm)
+    // Hàm tính mốc thời gian bắt đầu (tuNgay) dựa vào năm và tháng (nếu không chọn
+    // tháng thì tính từ ngày 1/1 của năm)
     private LocalDateTime tinhTuNgay(int nam, Integer thang) {
         if (thang == null) {
             return LocalDateTime.of(nam, 1, 1, 0, 0, 0);
@@ -72,7 +74,8 @@ public class PhieuNhapBaoCaoController {
         return LocalDateTime.of(nam, thang, 1, 0, 0, 0);
     }
 
-    // Hàm tính mốc thời gian kết thúc (denNgay) dựa vào năm và tháng (không chọn tháng thì đến 1/1 năm sau; có chọn tháng thì đến ngày 1 tháng kế tiếp)
+    // Hàm tính mốc thời gian kết thúc (denNgay) dựa vào năm và tháng (không chọn
+    // tháng thì đến 1/1 năm sau; có chọn tháng thì đến ngày 1 tháng kế tiếp)
     private LocalDateTime tinhDenNgay(int nam, Integer thang) {
         if (thang == null) {
             return LocalDateTime.of(nam + 1, 1, 1, 0, 0, 0);
@@ -83,7 +86,8 @@ public class PhieuNhapBaoCaoController {
         return LocalDateTime.of(nam, thang + 1, 1, 0, 0, 0);
     }
 
-    // Xử lý yêu cầu GET /api/phieu-nhap/lich-su: xem lịch sử phiếu nhập kho theo năm và tháng (tùy chọn)
+    // Xử lý yêu cầu GET /api/phieu-nhap/lich-su: xem lịch sử phiếu nhập kho theo
+    // năm và tháng (tùy chọn)
     @GetMapping("/lich-su")
     public ResponseEntity<?> xemLichSuPhieuNhap(
             @RequestParam(value = "nam", required = false) String namStr,
@@ -101,7 +105,8 @@ public class PhieuNhapBaoCaoController {
             thang = Integer.parseInt(thangStr.trim());
         }
 
-        // Bước 2: Tính khoảng thời gian [tuNgay, denNgay) để truyền vào câu truy vấn SQL
+        // Bước 2: Tính khoảng thời gian [tuNgay, denNgay) để truyền vào câu truy vấn
+        // SQL
         LocalDateTime tuNgay = tinhTuNgay(nam, thang);
         LocalDateTime denNgay = tinhDenNgay(nam, thang);
 
@@ -110,7 +115,8 @@ public class PhieuNhapBaoCaoController {
         return ResponseEntity.ok(danhSach);
     }
 
-    // Xử lý yêu cầu GET /api/phieu-nhap/thong-ke: thống kê phiếu nhập kho (chỉ tính phiếu 'Hoàn thành') theo năm và tháng (tùy chọn)
+    // Xử lý yêu cầu GET /api/phieu-nhap/thong-ke: thống kê phiếu nhập kho (chỉ tính
+    // phiếu 'Hoàn thành') theo năm và tháng (tùy chọn)
     @GetMapping("/thong-ke")
     public ResponseEntity<?> thongKePhieuNhap(
             @RequestParam(value = "nam", required = false) String namStr,
@@ -134,10 +140,12 @@ public class PhieuNhapBaoCaoController {
 
         // Bước 3: Thực hiện các truy vấn thống kê nhỏ
         ThongKeTongChungProjection tongChung = phieuNhapBaoCaoRepository.thongKeTongChung(tuNgay, denNgay);
-        List<ThongKeTheoNCCProjection> theoNhaCungCap = phieuNhapBaoCaoRepository.thongKeTheoNhaCungCap(tuNgay, denNgay);
+        List<ThongKeTheoNCCProjection> theoNhaCungCap = phieuNhapBaoCaoRepository.thongKeTheoNhaCungCap(tuNgay,
+                denNgay);
         List<ThongKeTheoSanPhamProjection> theoSanPham = phieuNhapBaoCaoRepository.thongKeTheoSanPham(tuNgay, denNgay);
 
-        // Bước 4: Đưa kết quả vào LinkedHashMap để giữ đúng thứ tự các mục khi trả về JSON
+        // Bước 4: Đưa kết quả vào LinkedHashMap để giữ đúng thứ tự các mục khi trả về
+        // JSON
         Map<String, Object> ketQua = new LinkedHashMap<>();
         ketQua.put("tongSoPhieu", tongChung.getTongSoPhieu());
         ketQua.put("tongTien", tongChung.getTongTien());
@@ -147,12 +155,14 @@ public class PhieuNhapBaoCaoController {
         ketQua.put("theoNhaCungCap", theoNhaCungCap);
         ketQua.put("theoSanPham", theoSanPham);
 
-        // Bước 5: Nếu người dùng KHÔNG gửi tham số thang (thống kê cả năm) thì thêm danh sách đủ 12 tháng
+        // Bước 5: Nếu người dùng KHÔNG gửi tham số thang (thống kê cả năm) thì thêm
+        // danh sách đủ 12 tháng
         if (thang == null) {
             List<ThongKeTheoThangProjection> duLieuThang = phieuNhapBaoCaoRepository.thongKeTheoThang(tuNgay, denNgay);
             List<Map<String, Object>> danhSach12Thang = new ArrayList<>();
 
-            // Dùng vòng lặp for từ tháng 1 đến tháng 12 để đảm bảo tháng nào không có phiếu vẫn hiện số 0
+            // Dùng vòng lặp for từ tháng 1 đến tháng 12 để đảm bảo tháng nào không có phiếu
+            // vẫn hiện số 0
             for (int m = 1; m <= 12; m++) {
                 int soPhieuThang = 0;
                 BigDecimal tongTienThang = BigDecimal.ZERO;

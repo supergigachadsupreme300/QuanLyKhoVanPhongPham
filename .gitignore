@@ -26,3 +26,6 @@ logs/
 # Database
 *.db
 *.sqlite
+
+# Thu muc luu tru file HTML phieu nhap kho khi in
+phieu-nhap-luu-tru/
