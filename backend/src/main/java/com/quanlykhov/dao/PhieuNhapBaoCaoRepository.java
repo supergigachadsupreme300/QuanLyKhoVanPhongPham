@@ -29,6 +29,38 @@ public interface PhieuNhapBaoCaoRepository extends JpaRepository<PhieuNhapKho, S
         Integer getTongSLThucNhap();
     }
 
+    // Interface projection hứng kết quả thống kê tổng chung (tổng số phiếu, tổng tiền, tổng số lượng thực nhập, tổng số lượng theo chứng từ, chênh lệch)
+    public interface ThongKeTongChungProjection {
+        Integer getTongSoPhieu();
+        BigDecimal getTongTien();
+        Integer getTongSLThucNhap();
+        Integer getTongSLTheoChungTu();
+        Integer getChenhLech();
+    }
+
+    // Interface projection hứng kết quả thống kê theo từng nhà cung cấp
+    public interface ThongKeTheoNCCProjection {
+        String getMaNCC();
+        String getTenNCC();
+        Integer getSoPhieu();
+        BigDecimal getTongTien();
+    }
+
+    // Interface projection hứng kết quả thống kê theo từng sản phẩm
+    public interface ThongKeTheoSanPhamProjection {
+        String getMaSP();
+        String getTenSP();
+        Integer getTongSLThucNhap();
+        BigDecimal getTongTien();
+    }
+
+    // Interface projection hứng kết quả thống kê theo từng tháng trong năm
+    public interface ThongKeTheoThangProjection {
+        Integer getThang();
+        Integer getSoPhieu();
+        BigDecimal getTongTien();
+    }
+
     // Truy vấn lấy danh sách lịch sử phiếu nhập trong khoảng thời gian [tuNgay, denNgay),
     // nối với bảng NhaCC để lấy tên nhà cung cấp, nối với NhanVien để lấy họ tên nhân viên,
     // nối trái (LEFT JOIN) với ChiTietPhieuNhap để tính tổng tiền, tổng số lượng theo chứng từ và tổng số lượng thực nhập của từng phiếu
@@ -53,6 +85,78 @@ public interface PhieuNhapBaoCaoRepository extends JpaRepository<PhieuNhapKho, S
             + "ORDER BY pn.NgayNhap DESC",
             nativeQuery = true)
     List<LichSuPhieuNhapProjection> layLichSuPhieuNhap(
+            @Param("tuNgay") LocalDateTime tuNgay,
+            @Param("denNgay") LocalDateTime denNgay
+    );
+
+    // Truy vấn tính các con số thống kê tổng chung (tổng số phiếu, tổng tiền, tổng SL thực nhập, tổng SL chứng từ, chênh lệch) của các phiếu 'Hoàn thành'
+    @Query(value = "SELECT "
+            + "COUNT(DISTINCT pn.MaPN) AS tongSoPhieu, "
+            + "COALESCE(SUM(ct.SLThucNhap * ct.GiaNhap), 0) AS tongTien, "
+            + "COALESCE(SUM(ct.SLThucNhap), 0) AS tongSLThucNhap, "
+            + "COALESCE(SUM(ct.SLTheoChungTu), 0) AS tongSLTheoChungTu, "
+            + "COALESCE(SUM(ct.SLTheoChungTu) - SUM(ct.SLThucNhap), 0) AS chenhLech "
+            + "FROM PhieuNhapKho pn "
+            + "LEFT JOIN ChiTietPhieuNhap ct ON pn.MaPN = ct.MaPN "
+            + "WHERE pn.TrangThai = 'Hoàn thành' "
+            + "AND pn.NgayNhap >= :tuNgay AND pn.NgayNhap < :denNgay",
+            nativeQuery = true)
+    ThongKeTongChungProjection thongKeTongChung(
+            @Param("tuNgay") LocalDateTime tuNgay,
+            @Param("denNgay") LocalDateTime denNgay
+    );
+
+    // Truy vấn thống kê số phiếu và tổng tiền nhập theo từng nhà cung cấp của các phiếu 'Hoàn thành', sắp xếp tổng tiền giảm dần
+    @Query(value = "SELECT "
+            + "ncc.MaNCC AS maNCC, "
+            + "ncc.TenNCC AS tenNCC, "
+            + "COUNT(DISTINCT pn.MaPN) AS soPhieu, "
+            + "COALESCE(SUM(ct.SLThucNhap * ct.GiaNhap), 0) AS tongTien "
+            + "FROM PhieuNhapKho pn "
+            + "JOIN NhaCC ncc ON pn.MaNCC = ncc.MaNCC "
+            + "LEFT JOIN ChiTietPhieuNhap ct ON pn.MaPN = ct.MaPN "
+            + "WHERE pn.TrangThai = 'Hoàn thành' "
+            + "AND pn.NgayNhap >= :tuNgay AND pn.NgayNhap < :denNgay "
+            + "GROUP BY ncc.MaNCC, ncc.TenNCC "
+            + "ORDER BY tongTien DESC",
+            nativeQuery = true)
+    List<ThongKeTheoNCCProjection> thongKeTheoNhaCungCap(
+            @Param("tuNgay") LocalDateTime tuNgay,
+            @Param("denNgay") LocalDateTime denNgay
+    );
+
+    // Truy vấn thống kê tổng số lượng thực nhập và tổng tiền theo từng sản phẩm của các phiếu 'Hoàn thành', sắp xếp tổng tiền giảm dần
+    @Query(value = "SELECT "
+            + "sp.MaSP AS maSP, "
+            + "sp.TenSP AS tenSP, "
+            + "COALESCE(SUM(ct.SLThucNhap), 0) AS tongSLThucNhap, "
+            + "COALESCE(SUM(ct.SLThucNhap * ct.GiaNhap), 0) AS tongTien "
+            + "FROM PhieuNhapKho pn "
+            + "JOIN ChiTietPhieuNhap ct ON pn.MaPN = ct.MaPN "
+            + "JOIN SanPham sp ON ct.MaSP = sp.MaSP "
+            + "WHERE pn.TrangThai = 'Hoàn thành' "
+            + "AND pn.NgayNhap >= :tuNgay AND pn.NgayNhap < :denNgay "
+            + "GROUP BY sp.MaSP, sp.TenSP "
+            + "ORDER BY tongTien DESC",
+            nativeQuery = true)
+    List<ThongKeTheoSanPhamProjection> thongKeTheoSanPham(
+            @Param("tuNgay") LocalDateTime tuNgay,
+            @Param("denNgay") LocalDateTime denNgay
+    );
+
+    // Truy vấn thống kê số phiếu và tổng tiền theo từng tháng của các phiếu 'Hoàn thành' trong khoảng thời gian [tuNgay, denNgay)
+    @Query(value = "SELECT "
+            + "MONTH(pn.NgayNhap) AS thang, "
+            + "COUNT(DISTINCT pn.MaPN) AS soPhieu, "
+            + "COALESCE(SUM(ct.SLThucNhap * ct.GiaNhap), 0) AS tongTien "
+            + "FROM PhieuNhapKho pn "
+            + "LEFT JOIN ChiTietPhieuNhap ct ON pn.MaPN = ct.MaPN "
+            + "WHERE pn.TrangThai = 'Hoàn thành' "
+            + "AND pn.NgayNhap >= :tuNgay AND pn.NgayNhap < :denNgay "
+            + "GROUP BY MONTH(pn.NgayNhap) "
+            + "ORDER BY thang ASC",
+            nativeQuery = true)
+    List<ThongKeTheoThangProjection> thongKeTheoThang(
             @Param("tuNgay") LocalDateTime tuNgay,
             @Param("denNgay") LocalDateTime denNgay
     );
