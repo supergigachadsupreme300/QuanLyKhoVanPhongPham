@@ -1,12 +1,22 @@
 package com.quanlykhov.api;
 
 import com.quanlykhov.dao.ChiTietPhieuXuatRepository;
+import com.quanlykhov.dao.EmployeeRepository;
+import com.quanlykhov.dao.KhachHangRepository;
 import com.quanlykhov.dao.PhieuXuatKhoRepository;
+import com.quanlykhov.dao.SanPhamRepository;
 import com.quanlykhov.model.ChiTietPhieuXuat;
 import com.quanlykhov.model.PhieuXuatKho;
+import com.quanlykhov.model.SanPham;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,18 +32,91 @@ public class PhieuXuatController {
 
     private final PhieuXuatKhoRepository phieuXuatKhoRepository;
     private final ChiTietPhieuXuatRepository chiTietPhieuXuatRepository;
+    private final SanPhamRepository sanPhamRepository;
+    private final KhachHangRepository khachHangRepository;
+    private final EmployeeRepository employeeRepository;
 
-    // Hàm tạo để Spring truyền hai Repository phiếu xuất và chi tiết phiếu xuất vào sử dụng
+    // Hàm tạo để Spring truyền các Repository cần thiết vào sử dụng
     public PhieuXuatController(PhieuXuatKhoRepository phieuXuatKhoRepository,
-                               ChiTietPhieuXuatRepository chiTietPhieuXuatRepository) {
+                               ChiTietPhieuXuatRepository chiTietPhieuXuatRepository,
+                               SanPhamRepository sanPhamRepository,
+                               KhachHangRepository khachHangRepository,
+                               EmployeeRepository employeeRepository) {
         this.phieuXuatKhoRepository = phieuXuatKhoRepository;
         this.chiTietPhieuXuatRepository = chiTietPhieuXuatRepository;
+        this.sanPhamRepository = sanPhamRepository;
+        this.khachHangRepository = khachHangRepository;
+        this.employeeRepository = employeeRepository;
     }
 
     // Xử lý yêu cầu GET /api/phieu-xuat: trả về danh sách tất cả phiếu xuất mới nhất lên đầu
     @GetMapping
     public List<PhieuXuatKho> getAllPhieuXuat() {
         return phieuXuatKhoRepository.findAllByOrderByNgayXuatDesc();
+    }
+
+    // Xử lý yêu cầu GET /api/phieu-xuat/lich-su/ngay: lọc tất cả phiếu xuất theo một ngày (yyyy-MM-dd)
+    @GetMapping("/lich-su/ngay")
+    public ResponseEntity<?> getLichSuTheoNgay(@RequestParam(required = false) String ngay) {
+        String loi = kiemTraNgay(ngay);
+        if (loi != null) {
+            return ResponseEntity.badRequest().body(loi);
+        }
+
+        LocalDate ngayCanXem = LocalDate.parse(ngay.trim());
+        // Tính khoảng thời gian [00:00 của ngày đó, 00:00 của ngày hôm sau)
+        LocalDateTime tuNgay = ngayCanXem.atStartOfDay();
+        LocalDateTime denNgay = ngayCanXem.plusDays(1).atStartOfDay();
+
+        List<PhieuXuatKho> danhSach = phieuXuatKhoRepository
+                .findByNgayXuatGreaterThanEqualAndNgayXuatLessThanOrderByNgayXuatDesc(tuNgay, denNgay);
+        return ResponseEntity.ok(danhSach);
+    }
+
+    // Xử lý yêu cầu GET /api/phieu-xuat/lich-su/thang: lọc tất cả phiếu xuất theo tháng và năm
+    @GetMapping("/lich-su/thang")
+    public ResponseEntity<?> getLichSuTheoThang(@RequestParam(required = false) String thang,
+                                                @RequestParam(required = false) String nam) {
+        String loiThang = kiemTraThang(thang);
+        if (loiThang != null) {
+            return ResponseEntity.badRequest().body(loiThang);
+        }
+        String loiNam = kiemTraNam(nam);
+        if (loiNam != null) {
+            return ResponseEntity.badRequest().body(loiNam);
+        }
+
+        int giaTriThang = Integer.parseInt(thang.trim());
+        int giaTriNam = Integer.parseInt(nam.trim());
+
+        // Tính khoảng thời gian [ngày 1 của tháng, ngày 1 của tháng sau)
+        LocalDate dauThang = LocalDate.of(giaTriNam, giaTriThang, 1);
+        LocalDateTime tuNgay = dauThang.atStartOfDay();
+        LocalDateTime denNgay = dauThang.plusMonths(1).atStartOfDay();
+
+        List<PhieuXuatKho> danhSach = phieuXuatKhoRepository
+                .findByNgayXuatGreaterThanEqualAndNgayXuatLessThanOrderByNgayXuatDesc(tuNgay, denNgay);
+        return ResponseEntity.ok(danhSach);
+    }
+
+    // Xử lý yêu cầu GET /api/phieu-xuat/lich-su/nam: lọc tất cả phiếu xuất theo năm
+    @GetMapping("/lich-su/nam")
+    public ResponseEntity<?> getLichSuTheoNam(@RequestParam(required = false) String nam) {
+        String loiNam = kiemTraNam(nam);
+        if (loiNam != null) {
+            return ResponseEntity.badRequest().body(loiNam);
+        }
+
+        int giaTriNam = Integer.parseInt(nam.trim());
+
+        // Tính khoảng thời gian [01/01 của năm đó, 01/01 của năm sau)
+        LocalDate dauNam = LocalDate.of(giaTriNam, 1, 1);
+        LocalDateTime tuNgay = dauNam.atStartOfDay();
+        LocalDateTime denNgay = dauNam.plusYears(1).atStartOfDay();
+
+        List<PhieuXuatKho> danhSach = phieuXuatKhoRepository
+                .findByNgayXuatGreaterThanEqualAndNgayXuatLessThanOrderByNgayXuatDesc(tuNgay, denNgay);
+        return ResponseEntity.ok(danhSach);
     }
 
     // Xử lý yêu cầu GET /api/phieu-xuat/{maPX}: trả về 1 phiếu xuất kèm danh sách chi tiết của phiếu đó
@@ -52,5 +135,348 @@ public class PhieuXuatController {
         phanHoi.put("chiTiet", danhSachChiTiet);
 
         return ResponseEntity.ok(phanHoi);
+    }
+
+    // Xử lý yêu cầu POST /api/phieu-xuat: lập phiếu xuất kho mới và trừ tồn kho sản phẩm
+    // @Transactional đảm bảo việc lưu phiếu, lưu chi tiết và giảm tồn kho xảy ra cùng lúc (hoặc cùng hủy bỏ nếu có lỗi)
+    @Transactional
+    @PostMapping
+    public ResponseEntity<?> createPhieuXuat(@RequestBody(required = false) PhieuXuatRequest request) {
+        // Bước 1: Kiểm tra thông tin chung của phiếu (nhân viên, khách hàng, ghi chú, danh sách chi tiết)
+        String loiPhieu = kiemTraThongTinPhieu(request);
+        if (loiPhieu != null) {
+            return ResponseEntity.badRequest().body(loiPhieu);
+        }
+
+        // Bước 2: Kiểm tra toàn bộ các dòng sản phẩm trước khi lưu bất kỳ dữ liệu nào
+        List<SanPham> danhSachSanPham = new ArrayList<>();
+        String loiChiTiet = kiemTraVaLayDanhSachSanPham(request.getChiTiet(), danhSachSanPham);
+        if (loiChiTiet != null) {
+            return ResponseEntity.badRequest().body(loiChiTiet);
+        }
+
+        // Bước 3: Tự sinh mã phiếu xuất mới (ví dụ PX04, PX05...)
+        String maPXMoi = taoMaPhieuXuatMoi();
+
+        // Bước 4: Lưu thông tin chung của phiếu xuất kho
+        PhieuXuatKho phieuMoi = new PhieuXuatKho();
+        phieuMoi.setMaPX(maPXMoi);
+        phieuMoi.setNgayXuat(LocalDateTime.now());
+        phieuMoi.setTrangThai("Hoàn thành");
+        phieuMoi.setGhiChu(chuanHoaChuoi(request.getGhiChu()));
+        phieuMoi.setMaNV(request.getMaNV().trim());
+        phieuMoi.setMaKH(request.getMaKH().trim());
+        PhieuXuatKho phieuDaLuu = phieuXuatKhoRepository.save(phieuMoi);
+
+        // Bước 5: Lưu từng dòng chi tiết và trừ tồn kho cho từng sản phẩm
+        List<ChiTietPhieuXuat> danhSachChiTietDaLuu = luuChiTietVaGiamTonKho(
+                maPXMoi,
+                request.getChiTiet(),
+                danhSachSanPham
+        );
+
+        // Bước 6: Đóng gói kết quả trả về cùng mã trạng thái 201 Created
+        Map<String, Object> phanHoi = new LinkedHashMap<>();
+        phanHoi.put("phieuXuat", phieuDaLuu);
+        phanHoi.put("chiTiet", danhSachChiTietDaLuu);
+        return ResponseEntity.status(HttpStatus.CREATED).body(phanHoi);
+    }
+
+    // Xử lý yêu cầu PUT /api/phieu-xuat/{maPX}/huy: hủy phiếu xuất kho và cộng trả lại tồn kho sản phẩm
+    // @Transactional đảm bảo việc đổi trạng thái phiếu và cộng lại tồn kho xảy ra cùng lúc (hoặc cùng hủy bỏ nếu có lỗi)
+    @Transactional
+    @PutMapping("/{maPX}/huy")
+    public ResponseEntity<?> huyPhieuXuat(@PathVariable String maPX) {
+        // Bước 1: Tìm phiếu xuất theo mã; không thấy thì trả lỗi 404
+        Optional<PhieuXuatKho> ketQua = phieuXuatKhoRepository.findById(maPX);
+        if (!ketQua.isPresent()) {
+            return ResponseEntity.status(404).body("Không tìm thấy phiếu xuất có mã: " + maPX);
+        }
+
+        // Bước 2: Kiểm tra trạng thái phiếu (chỉ được hủy phiếu đang ở trạng thái Hoàn thành)
+        PhieuXuatKho phieuXuat = ketQua.get();
+        String loiTrangThai = kiemTraTrangThaiDeHuy(phieuXuat);
+        if (loiTrangThai != null) {
+            return ResponseEntity.badRequest().body(loiTrangThai);
+        }
+
+        // Bước 3: Lấy toàn bộ dòng chi tiết của phiếu xuất
+        List<ChiTietPhieuXuat> danhSachChiTiet = chiTietPhieuXuatRepository.findByMaPX(maPX);
+
+        // Bước 4: Tìm sẵn các sản phẩm trong chi tiết trước khi cập nhật dữ liệu
+        List<SanPham> danhSachSanPham = new ArrayList<>();
+        String loiSanPham = layDanhSachSanPhamCanHoanTon(danhSachChiTiet, danhSachSanPham);
+        if (loiSanPham != null) {
+            return ResponseEntity.badRequest().body(loiSanPham);
+        }
+
+        // Bước 5: Đổi trạng thái phiếu thành 'Hủy' (giữ nguyên ghi chú, không xóa phiếu hay chi tiết)
+        phieuXuat.setTrangThai("Hủy");
+        PhieuXuatKho phieuDaCapNhat = phieuXuatKhoRepository.save(phieuXuat);
+
+        // Bước 6: Cộng trả lại số lượng đã xuất vào tồn kho cho từng sản phẩm
+        congLaiTonKhoChoSanPham(danhSachChiTiet, danhSachSanPham);
+
+        // Bước 7: Đóng gói kết quả trả về gồm phiếu đã hủy và danh sách chi tiết
+        Map<String, Object> phanHoi = new LinkedHashMap<>();
+        phanHoi.put("phieuXuat", phieuDaCapNhat);
+        phanHoi.put("chiTiet", danhSachChiTiet);
+        return ResponseEntity.ok(phanHoi);
+    }
+
+    // Kiểm tra phiếu xuất có đủ điều kiện để hủy hay không; trả về câu báo lỗi nếu sai, null nếu hợp lệ
+    private String kiemTraTrangThaiDeHuy(PhieuXuatKho phieuXuat) {
+        String trangThai = phieuXuat.getTrangThai();
+        if ("Hủy".equals(trangThai)) {
+            return "Phiếu xuất " + phieuXuat.getMaPX() + " đã bị hủy trước đó, không thể hủy lần nữa!";
+        }
+        if (!"Hoàn thành".equals(trangThai)) {
+            return "Chỉ được hủy phiếu xuất đang ở trạng thái Hoàn thành!";
+        }
+        return null;
+    }
+
+    // Tìm toàn bộ sản phẩm có trong chi tiết phiếu xuất (kể cả sản phẩm đã ngừng kinh doanh)
+    private String layDanhSachSanPhamCanHoanTon(List<ChiTietPhieuXuat> danhSachChiTiet,
+                                                List<SanPham> ketQuaSanPham) {
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietPhieuXuat dong = danhSachChiTiet.get(i);
+            Optional<SanPham> spOpt = sanPhamRepository.findById(dong.getMaSP());
+            if (!spOpt.isPresent()) {
+                return "Không tìm thấy sản phẩm có mã: " + dong.getMaSP();
+            }
+            ketQuaSanPham.add(spOpt.get());
+        }
+        return null;
+    }
+
+    // Cộng trả lại số lượng đã xuất vào tồn kho cho từng sản phẩm trong phiếu bị hủy
+    private void congLaiTonKhoChoSanPham(List<ChiTietPhieuXuat> danhSachChiTiet,
+                                         List<SanPham> danhSachSanPham) {
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietPhieuXuat dong = danhSachChiTiet.get(i);
+            SanPham sp = danhSachSanPham.get(i);
+
+            int tonHienTai = 0;
+            if (sp.getSlTonKho() != null) {
+                tonHienTai = sp.getSlTonKho();
+            }
+            int slXuat = 0;
+            if (dong.getSlXuat() != null) {
+                slXuat = dong.getSlXuat();
+            }
+
+            sp.setSlTonKho(tonHienTai + slXuat);
+            sanPhamRepository.save(sp);
+        }
+    }
+
+    // Kiểm tra thông tin chung của phiếu xuất; trả về câu thông báo lỗi nếu sai, null nếu hợp lệ
+    private String kiemTraThongTinPhieu(PhieuXuatRequest request) {
+        if (request == null) {
+            return "Dữ liệu phiếu xuất không được để trống!";
+        }
+        if (request.getMaNV() == null || request.getMaNV().trim().isEmpty()) {
+            return "Mã nhân viên không được để trống!";
+        }
+        if (request.getMaKH() == null || request.getMaKH().trim().isEmpty()) {
+            return "Mã khách hàng không được để trống!";
+        }
+        if (request.getChiTiet() == null || request.getChiTiet().isEmpty()) {
+            return "Phiếu xuất phải có ít nhất 1 sản phẩm!";
+        }
+
+        String ghiChu = chuanHoaChuoi(request.getGhiChu());
+        if (ghiChu != null && ghiChu.length() > 255) {
+            return "Ghi chú tối đa 255 ký tự!";
+        }
+
+        String maNV = request.getMaNV().trim();
+        if (!employeeRepository.existsById(maNV)) {
+            return "Không tìm thấy nhân viên có mã: " + maNV;
+        }
+
+        String maKH = request.getMaKH().trim();
+        if (!khachHangRepository.existsById(maKH)) {
+            return "Không tìm thấy khách hàng có mã: " + maKH;
+        }
+
+        return null;
+    }
+
+    // Kiểm tra từng dòng sản phẩm (trùng mã, số lượng, tồn tại, trạng thái, tồn kho) và gom SanPham vào ketQuaSanPham
+    private String kiemTraVaLayDanhSachSanPham(List<ChiTietXuatRequest> danhSachChiTiet,
+                                               List<SanPham> ketQuaSanPham) {
+        List<String> dsMaSPDaGap = new ArrayList<>();
+
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietXuatRequest dong = danhSachChiTiet.get(i);
+            if (dong == null) {
+                return "Thông tin dòng sản phẩm thứ " + (i + 1) + " không hợp lệ!";
+            }
+            if (dong.getMaSP() == null || dong.getMaSP().trim().isEmpty()) {
+                return "Mã sản phẩm ở dòng thứ " + (i + 1) + " không được để trống!";
+            }
+
+            String maSP = dong.getMaSP().trim();
+            if (dsMaSPDaGap.contains(maSP)) {
+                return "Sản phẩm có mã " + maSP + " bị trùng lặp trong cùng một phiếu xuất!";
+            }
+            dsMaSPDaGap.add(maSP);
+
+            if (dong.getSlXuat() == null || dong.getSlXuat() <= 0) {
+                return "Số lượng xuất của sản phẩm " + maSP + " phải lớn hơn 0!";
+            }
+
+            Optional<SanPham> spOpt = sanPhamRepository.findById(maSP);
+            if (!spOpt.isPresent()) {
+                return "Không tìm thấy sản phẩm có mã: " + maSP;
+            }
+
+            SanPham sp = spOpt.get();
+            if ("Ngừng kinh doanh".equals(sp.getTrangThai()) || !"Đang kinh doanh".equals(sp.getTrangThai())) {
+                return "Sản phẩm " + sp.getTenSP() + " (" + maSP + ") đang ngừng kinh doanh, không thể xuất kho!";
+            }
+
+            int tonHienTai = 0;
+            if (sp.getSlTonKho() != null) {
+                tonHienTai = sp.getSlTonKho();
+            }
+
+            if (dong.getSlXuat() > tonHienTai) {
+                return "Sản phẩm " + sp.getTenSP() + " (" + maSP + ") không đủ tồn kho! Hiện tồn: "
+                        + tonHienTai + ", yêu cầu xuất: " + dong.getSlXuat() + ".";
+            }
+
+            ketQuaSanPham.add(sp);
+        }
+
+        return null;
+    }
+
+    // Tự sinh mã phiếu xuất mới dạng PX04, PX05... dựa trên mã lớn nhất hiện có
+    private String taoMaPhieuXuatMoi() {
+        List<PhieuXuatKho> tatCaPhieu = phieuXuatKhoRepository.findAll();
+        int soLonNhat = 0;
+
+        for (int i = 0; i < tatCaPhieu.size(); i++) {
+            String ma = tatCaPhieu.get(i).getMaPX();
+            if (ma != null && ma.startsWith("PX") && ma.length() > 2) {
+                String phanSo = ma.substring(2);
+                try {
+                    int so = Integer.parseInt(phanSo);
+                    if (so > soLonNhat) {
+                        soLonNhat = so;
+                    }
+                } catch (NumberFormatException e) {
+                    // Bỏ qua các mã không đúng dạng PX + chữ số
+                }
+            }
+        }
+
+        int soMoi = soLonNhat + 1;
+        if (soMoi < 10) {
+            return "PX0" + soMoi;
+        }
+        return "PX" + soMoi;
+    }
+
+    // Lưu từng dòng chi tiết phiếu xuất với giá bán hiện tại và giảm số lượng tồn kho của sản phẩm
+    private List<ChiTietPhieuXuat> luuChiTietVaGiamTonKho(String maPX,
+                                                           List<ChiTietXuatRequest> danhSachChiTiet,
+                                                           List<SanPham> danhSachSanPham) {
+        List<ChiTietPhieuXuat> ketQua = new ArrayList<>();
+
+        for (int i = 0; i < danhSachChiTiet.size(); i++) {
+            ChiTietXuatRequest dong = danhSachChiTiet.get(i);
+            SanPham sp = danhSachSanPham.get(i);
+
+            int tonHienTai = 0;
+            if (sp.getSlTonKho() != null) {
+                tonHienTai = sp.getSlTonKho();
+            }
+            int slXuat = dong.getSlXuat();
+
+            // Giảm tồn kho của sản phẩm theo số lượng xuất
+            sp.setSlTonKho(tonHienTai - slXuat);
+            sanPhamRepository.save(sp);
+
+            // Lưu dòng chi tiết với giá bán lấy từ SanPham.GiaBan tại thời điểm xuất
+            ChiTietPhieuXuat chiTietMoi = new ChiTietPhieuXuat();
+            chiTietMoi.setMaPX(maPX);
+            chiTietMoi.setMaSP(sp.getMaSP());
+            chiTietMoi.setSlXuat(slXuat);
+            chiTietMoi.setGiaBan(sp.getGiaBan());
+
+            ChiTietPhieuXuat daLuu = chiTietPhieuXuatRepository.save(chiTietMoi);
+            ketQua.add(daLuu);
+        }
+
+        return ketQua;
+    }
+
+    // Kiểm tra tham số ngày có đúng định dạng yyyy-MM-dd và hợp lệ theo lịch hay không
+    private String kiemTraNgay(String ngay) {
+        String chuoiNgay = chuanHoaChuoi(ngay);
+        if (chuoiNgay == null) {
+            return "Ngày không được để trống! Vui lòng nhập theo định dạng yyyy-MM-dd (ví dụ: 2026-11-08).";
+        }
+        if (chuoiNgay.length() != 10) {
+            return "Ngày không đúng định dạng yyyy-MM-dd (ví dụ: 2026-11-08)!";
+        }
+        try {
+            LocalDate.parse(chuoiNgay);
+        } catch (DateTimeParseException e) {
+            return "Ngày không hợp lệ! Vui lòng nhập đúng định dạng yyyy-MM-dd (ví dụ: 2026-11-08).";
+        }
+        return null;
+    }
+
+    // Kiểm tra tham số tháng có phải số nguyên từ 1 đến 12 hay không
+    private String kiemTraThang(String thang) {
+        String chuoiThang = chuanHoaChuoi(thang);
+        if (chuoiThang == null) {
+            return "Tháng không được để trống!";
+        }
+        int giaTriThang;
+        try {
+            giaTriThang = Integer.parseInt(chuoiThang);
+        } catch (NumberFormatException e) {
+            return "Tháng phải là số nguyên (từ 1 đến 12)!";
+        }
+        if (giaTriThang < 1 || giaTriThang > 12) {
+            return "Tháng không hợp lệ! Tháng phải nằm trong khoảng từ 1 đến 12.";
+        }
+        return null;
+    }
+
+    // Kiểm tra tham số năm có phải số nguyên hợp lý (từ 2000 đến 2100) hay không
+    private String kiemTraNam(String nam) {
+        String chuoiNam = chuanHoaChuoi(nam);
+        if (chuoiNam == null) {
+            return "Năm không được để trống!";
+        }
+        int giaTriNam;
+        try {
+            giaTriNam = Integer.parseInt(chuoiNam);
+        } catch (NumberFormatException e) {
+            return "Năm phải là số nguyên (từ 2000 đến 2100)!";
+        }
+        if (giaTriNam < 2000 || giaTriNam > 2100) {
+            return "Năm không hợp lệ! Năm phải nằm trong khoảng từ 2000 đến 2100.";
+        }
+        return null;
+    }
+
+    // Cắt khoảng trắng hai đầu chuỗi, trả về null nếu chuỗi rỗng
+    private String chuanHoaChuoi(String giaTri) {
+        if (giaTri == null) {
+            return null;
+        }
+        String ketQua = giaTri.trim();
+        if (ketQua.isEmpty()) {
+            return null;
+        }
+        return ketQua;
     }
 }
