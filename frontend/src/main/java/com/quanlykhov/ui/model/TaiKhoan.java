@@ -1,4 +1,4 @@
-package com.quanlykhov.admin.model;
+package com.quanlykhov.ui.model;
 
 /**
  * Anh xa bang TaiKhoan (MaTK, TenDangNhap, MatKhau, TrangThai, MaVT, MaNV).

@@ -1,14 +1,14 @@
-package com.quanlykhov.admin;
+package com.quanlykhov.ui;
 
 import com.quanlykhov.common.constants.AppConstants;
-import com.quanlykhov.admin.mock.DuLieuMau;
-import com.quanlykhov.admin.model.TaiKhoan;
-import com.quanlykhov.admin.session.PhienDangNhap;
-import com.quanlykhov.admin.component.RoundedButton;
-import com.quanlykhov.admin.component.RoundedPanel;
-import com.quanlykhov.admin.component.ThongBao;
-import com.quanlykhov.admin.component.UiTheme;
-import com.quanlykhov.admin.MainFrame;
+import com.quanlykhov.ui.mock.DuLieuMau;
+import com.quanlykhov.ui.model.TaiKhoan;
+import com.quanlykhov.ui.session.PhienDangNhap;
+import com.quanlykhov.ui.component.RoundedButton;
+import com.quanlykhov.ui.component.RoundedPanel;
+import com.quanlykhov.ui.component.ThongBao;
+import com.quanlykhov.ui.component.UiTheme;
+import com.quanlykhov.ui.MainFrame;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

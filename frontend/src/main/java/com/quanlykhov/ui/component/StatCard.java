@@ -1,4 +1,4 @@
-package com.quanlykhov.admin.component;
+package com.quanlykhov.ui.component;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

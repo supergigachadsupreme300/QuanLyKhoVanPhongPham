@@ -1,7 +1,7 @@
-package com.quanlykhov.admin.session;
+package com.quanlykhov.ui.session;
 
-import com.quanlykhov.admin.mock.DuLieuMau;
-import com.quanlykhov.admin.model.TaiKhoan;
+import com.quanlykhov.ui.mock.DuLieuMau;
+import com.quanlykhov.ui.model.TaiKhoan;
 
 /**
  * Luu thong tin phien dang nhap hien tai.

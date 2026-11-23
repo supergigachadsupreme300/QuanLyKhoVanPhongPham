@@ -1,4 +1,4 @@
-package com.quanlykhov.admin.model;
+package com.quanlykhov.ui.model;
 
 /**
  * Anh xa bang NhanVien (MaNV, HoTen, Sdt, MaVT).

@@ -1,9 +1,9 @@
-package com.quanlykhov.admin.mock;
+package com.quanlykhov.ui.mock;
 
 import com.quanlykhov.common.constants.AppConstants;
-import com.quanlykhov.admin.model.NhanVien;
-import com.quanlykhov.admin.model.TaiKhoan;
-import com.quanlykhov.admin.model.VaiTro;
+import com.quanlykhov.ui.model.NhanVien;
+import com.quanlykhov.ui.model.TaiKhoan;
+import com.quanlykhov.ui.model.VaiTro;
 
 import java.util.ArrayList;
 import java.util.Arrays;
