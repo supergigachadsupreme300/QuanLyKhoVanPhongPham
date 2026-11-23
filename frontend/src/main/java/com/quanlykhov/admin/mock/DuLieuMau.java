@@ -1,9 +1,9 @@
-package com.quanlykhov.ui.mock;
+package com.quanlykhov.admin.mock;
 
 import com.quanlykhov.common.constants.AppConstants;
-import com.quanlykhov.ui.model.NhanVien;
-import com.quanlykhov.ui.model.TaiKhoan;
-import com.quanlykhov.ui.model.VaiTro;
+import com.quanlykhov.admin.model.NhanVien;
+import com.quanlykhov.admin.model.TaiKhoan;
+import com.quanlykhov.admin.model.VaiTro;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,9 +37,9 @@ public final class DuLieuMau {
         danhSachNhanVien.add(new NhanVien("NV02", "Trần Thị Hương", "0909234567", "VT02"));
         danhSachNhanVien.add(new NhanVien("NV03", "Lê Minh Tuấn", "0909345678", "VT03"));
 
-        danhSachTaiKhoan.add(new TaiKhoan("TK01", "admin", "admin123", "NV01", "VT01", AppConstants.TRANG_THAI_HOAT_DONG));
-        danhSachTaiKhoan.add(new TaiKhoan("TK02", "kho1", "123456", "NV02", "VT02", AppConstants.TRANG_THAI_HOAT_DONG));
-        danhSachTaiKhoan.add(new TaiKhoan("TK03", "banhang1", "123456", "NV03", "VT03", AppConstants.TRANG_THAI_HOAT_DONG));
+        danhSachTaiKhoan.add(new TaiKhoan("TK01", "admin", "admin123", AppConstants.TRANG_THAI_HOAT_DONG, "VT01", "NV01"));
+        danhSachTaiKhoan.add(new TaiKhoan("TK02", "kho1", "123456", AppConstants.TRANG_THAI_HOAT_DONG, "VT02", "NV02"));
+        danhSachTaiKhoan.add(new TaiKhoan("TK03", "banhang1", "123456", AppConstants.TRANG_THAI_HOAT_DONG, "VT03", "NV03"));
 
         quyenTheoVaiTro.put("VT01", String.join(",", Arrays.asList("tongquan", "taikhoan", "nhanvien", "vaitro")));
         quyenTheoVaiTro.put("VT02", String.join(",", Arrays.asList("tongquan")));

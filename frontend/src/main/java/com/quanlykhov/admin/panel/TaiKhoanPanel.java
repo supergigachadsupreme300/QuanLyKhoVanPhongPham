@@ -1,18 +1,18 @@
-package com.quanlykhov.ui.panel;
+package com.quanlykhov.admin.panel;
 
 import com.quanlykhov.common.constants.AppConstants;
-import com.quanlykhov.ui.mock.DuLieuMau;
-import com.quanlykhov.ui.model.NhanVien;
-import com.quanlykhov.ui.model.TaiKhoan;
-import com.quanlykhov.ui.model.VaiTro;
-import com.quanlykhov.ui.session.PhienDangNhap;
-import com.quanlykhov.ui.component.BangModel;
-import com.quanlykhov.ui.component.FormDialog;
-import com.quanlykhov.ui.component.PanelUtil;
-import com.quanlykhov.ui.component.RoundedButton;
-import com.quanlykhov.ui.component.ThongBao;
-import com.quanlykhov.ui.component.TrangThaiRenderer;
-import com.quanlykhov.ui.component.UiTheme;
+import com.quanlykhov.admin.mock.DuLieuMau;
+import com.quanlykhov.admin.model.NhanVien;
+import com.quanlykhov.admin.model.TaiKhoan;
+import com.quanlykhov.admin.model.VaiTro;
+import com.quanlykhov.admin.session.PhienDangNhap;
+import com.quanlykhov.admin.component.BangModel;
+import com.quanlykhov.admin.component.FormDialog;
+import com.quanlykhov.admin.component.PanelUtil;
+import com.quanlykhov.admin.component.RoundedButton;
+import com.quanlykhov.admin.component.ThongBao;
+import com.quanlykhov.admin.component.TrangThaiRenderer;
+import com.quanlykhov.admin.component.UiTheme;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

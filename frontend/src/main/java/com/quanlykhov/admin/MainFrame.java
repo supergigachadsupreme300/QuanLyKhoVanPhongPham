@@ -1,16 +1,16 @@
-package com.quanlykhov.ui;
+package com.quanlykhov.admin;
 
 import com.quanlykhov.common.constants.AppConstants;
-import com.quanlykhov.ui.session.PhienDangNhap;
-import com.quanlykhov.ui.component.RoundedButton;
-import com.quanlykhov.ui.component.SidebarButton;
-import com.quanlykhov.ui.component.ThongBao;
-import com.quanlykhov.ui.component.UiTheme;
-import com.quanlykhov.ui.DangNhapFrame;
-import com.quanlykhov.ui.panel.NhanVienPanel;
-import com.quanlykhov.ui.panel.TaiKhoanPanel;
-import com.quanlykhov.ui.panel.TongQuanPanel;
-import com.quanlykhov.ui.panel.VaiTroPanel;
+import com.quanlykhov.admin.session.PhienDangNhap;
+import com.quanlykhov.admin.component.RoundedButton;
+import com.quanlykhov.admin.component.SidebarButton;
+import com.quanlykhov.admin.component.ThongBao;
+import com.quanlykhov.admin.component.UiTheme;
+import com.quanlykhov.admin.DangNhapFrame;
+import com.quanlykhov.admin.panel.NhanVienPanel;
+import com.quanlykhov.admin.panel.TaiKhoanPanel;
+import com.quanlykhov.admin.panel.TongQuanPanel;
+import com.quanlykhov.admin.panel.VaiTroPanel;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;

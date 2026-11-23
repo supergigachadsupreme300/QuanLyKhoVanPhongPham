@@ -1,4 +1,4 @@
-package com.quanlykhov.ui.component;
+package com.quanlykhov.admin.component;
 
 import java.awt.Color;
 import java.awt.Cursor;

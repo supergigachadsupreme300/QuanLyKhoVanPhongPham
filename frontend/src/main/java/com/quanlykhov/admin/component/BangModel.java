@@ -1,4 +1,4 @@
-package com.quanlykhov.ui.component;
+package com.quanlykhov.admin.component;
 
 import javax.swing.table.DefaultTableModel;
 
