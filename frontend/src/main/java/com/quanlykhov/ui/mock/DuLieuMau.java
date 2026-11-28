@@ -81,10 +81,26 @@ public final class DuLieuMau {
     public String themTaiKhoan(TaiKhoan tk) {
         if (tk == null || tk.getTenDangNhap() == null || tk.getTenDangNhap().trim().isEmpty()) return "Vui lòng nhập tên đăng nhập.";
         for (TaiKhoan t : danhSachTaiKhoan) if (t.getTenDangNhap().equalsIgnoreCase(tk.getTenDangNhap())) return "Tên đăng nhập đã tồn tại.";
+        if (tk.getMaNV() != null && !tk.getMaNV().trim().isEmpty()) {
+            for (TaiKhoan t : danhSachTaiKhoan) if (tk.getMaNV().equals(t.getMaNV())) return "Nhân viên này đã có tài khoản.";
+        }
         danhSachTaiKhoan.add(tk); return null;
     }
     public String suaTaiKhoan(TaiKhoan tk) {
         if (tk == null) return "Dữ liệu không hợp lệ.";
+        if (tk.getTenDangNhap() == null || tk.getTenDangNhap().trim().isEmpty()) return "Vui lòng nhập tên đăng nhập.";
+        for (TaiKhoan t : danhSachTaiKhoan) {
+            if (!t.getMaTK().equals(tk.getMaTK()) && t.getTenDangNhap().equalsIgnoreCase(tk.getTenDangNhap())) {
+                return "Tên đăng nhập đã tồn tại.";
+            }
+        }
+        if (tk.getMaNV() != null && !tk.getMaNV().trim().isEmpty()) {
+            for (TaiKhoan t : danhSachTaiKhoan) {
+                if (!t.getMaTK().equals(tk.getMaTK()) && tk.getMaNV().equals(t.getMaNV())) {
+                    return "Nhân viên này đã có tài khoản.";
+                }
+            }
+        }
         for (TaiKhoan t : danhSachTaiKhoan) {
             if (t.getMaTK().equals(tk.getMaTK())) {
                 t.setTenDangNhap(tk.getTenDangNhap());
@@ -109,15 +125,22 @@ public final class DuLieuMau {
         for (NhanVien nv : danhSachNhanVien) if (maNV.equals(nv.getMaNV())) return nv;
         return null;
     }
-    public String themNhanVien(NhanVien nv) { if (nv == null) return "Dữ liệu không hợp lệ."; danhSachNhanVien.add(nv); return null; }
+    public String themNhanVien(NhanVien nv) {
+        if (nv == null) return "Dữ liệu không hợp lệ.";
+        if (nv.getHoTen() == null || nv.getHoTen().trim().isEmpty()) return "Vui lòng nhập họ tên.";
+        for (NhanVien n : danhSachNhanVien) if (n.getMaNV().equals(nv.getMaNV())) return "Mã nhân viên đã tồn tại.";
+        danhSachNhanVien.add(nv); return null;
+    }
     public String suaNhanVien(NhanVien nv) {
         if (nv == null) return "Dữ liệu không hợp lệ.";
+        if (nv.getHoTen() == null || nv.getHoTen().trim().isEmpty()) return "Vui lòng nhập họ tên.";
         for (NhanVien n : danhSachNhanVien) {
-            if (n.getMaNV().equals(nv.getMaNV())) { n.setHoTen(nv.getHoTen()); n.setSdt(nv.getSdt()); return null; }
+            if (n.getMaNV().equals(nv.getMaNV())) { n.setHoTen(nv.getHoTen()); n.setSdt(nv.getSdt()); n.setMaVT(nv.getMaVT()); return null; }
         }
         return "Không tìm thấy nhân viên.";
     }
     public String xoaNhanVien(String maNV) {
+        for (TaiKhoan tk : danhSachTaiKhoan) if (maNV != null && maNV.equals(tk.getMaNV())) return "Không thể xoá nhân viên đang có tài khoản.";
         for (int i = 0; i < danhSachNhanVien.size(); i++) {
             if (danhSachNhanVien.get(i).getMaNV().equals(maNV)) { danhSachNhanVien.remove(i); return null; }
         }
@@ -128,17 +151,27 @@ public final class DuLieuMau {
         for (VaiTro vt : danhSachVaiTro) if (maVT.equals(vt.getMaVT())) return vt;
         return null;
     }
-    public String themVaiTro(VaiTro vt) { if (vt == null) return "Dữ liệu không hợp lệ."; danhSachVaiTro.add(vt); return null; }
+    public String themVaiTro(VaiTro vt) {
+        if (vt == null) return "Dữ liệu không hợp lệ.";
+        if (vt.getTenVT() == null || vt.getTenVT().trim().isEmpty()) return "Vui lòng nhập tên vai trò.";
+        for (VaiTro v : danhSachVaiTro) if (v.getTenVT().equalsIgnoreCase(vt.getTenVT())) return "Tên vai trò đã tồn tại.";
+        danhSachVaiTro.add(vt); return null;
+    }
     public String suaVaiTro(VaiTro vt) {
         if (vt == null) return "Dữ liệu không hợp lệ.";
+        if (vt.getTenVT() == null || vt.getTenVT().trim().isEmpty()) return "Vui lòng nhập tên vai trò.";
+        for (VaiTro v : danhSachVaiTro) {
+            if (!v.getMaVT().equals(vt.getMaVT()) && v.getTenVT().equalsIgnoreCase(vt.getTenVT())) return "Tên vai trò đã tồn tại.";
+        }
         for (VaiTro v : danhSachVaiTro) {
             if (v.getMaVT().equals(vt.getMaVT())) { v.setTenVT(vt.getTenVT()); v.setMoTa(vt.getMoTa()); return null; }
         }
         return "Không tìm thấy vai trò.";
     }
     public String xoaVaiTro(String maVT) {
+        for (TaiKhoan tk : danhSachTaiKhoan) if (maVT != null && maVT.equals(tk.getMaVT())) return "Không thể xoá vai trò đang được sử dụng.";
         for (int i = 0; i < danhSachVaiTro.size(); i++) {
-            if (danhSachVaiTro.get(i).getMaVT().equals(maVT)) { danhSachVaiTro.remove(i); return null; }
+            if (danhSachVaiTro.get(i).getMaVT().equals(maVT)) { danhSachVaiTro.remove(i); quyenTheoVaiTro.remove(maVT); return null; }
         }
         return "Không tìm thấy vai trò.";
     }

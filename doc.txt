@@ -1,0 +1,206 @@
+ 
+BIÊN BẢN ĐÁNH GIÁ ĐỒ ÁN GIỮA KỲ - đồ án sẽ chấm vào tuần 11
+Học phần: Phân tích thiết kế hệ thống thông tin 
+Sinh viên: CNTT &amp; TUD
+ 
+ 
+ĐIỂM SỐ 
+ĐIỂM CHỮ 
+GV CHẤM  
+ 
+ 
+ 
+ 
+Nhóm:  (do giảng viên quy định).................................. 
+ 
+Tên đề tài: ................................................................................................................................  ................................................................................................................................................. 
+ 
+ Trường Đại học Sài Gòn 
+Cộng Hoà Xã Hội Chủ Nghĩa Việt Nam 
+ Khoa Công Nghệ Thông Tin 
+Độc lập – Tự do – Hạnh phúc 
+ 
+ 
+ 
+ 
+Ngày ……. tháng ………năm 2026 
+Thành viên nhóm: 
+STT 
+MSSV 
+Họ tên 
+Khối lượng công việc (%) 
+Điểm 
+Ký tên 
+1 
+ 
+ 
+ 
+ 
+ 
+2 
+ 
+ 
+ 
+ 
+ 
+3 
+ 
+ 
+ 
+ 
+ 
+4 
+ 
+ 
+ 
+ 
+ 
+5
+
+
+
+
+
+ 
+Yêucầu: 
+Nhóm tối đa 5 sinh viên, tìm hiểu và xây dựng HTTT cho một doanh nghiệp thương mại. (Thiết kế một phần nhỏ của HTTT: viết phần mềm hoặc website bán hàng: admin, quản lý kho, người bán hàng) .
+Lưu ý: 
+Điểm được chấm theo thang điểm yêu cầu của đồ án (bảng bên dưới). 
+Thành viên có tỷ lệ tham gia vào đồ án cao nhất (được xem như 100%) và có trọn số điểm đồ án. 
+Các thành viên còn lại dựa trên tỷ lệ % tính điểm cá nhân. 
+ 
+
+BẢNG YÊU CẦU 
+STT 
+Yêu cầu 
+ĐIỂM 
+ĐĐ 
+ 
+Báo cáo đồ án (in):  
++ Bảng kế hoạch làm việc của các SV trong nhóm, tự đánh giá % điểm của từng thành viên 
++ Có đầy đủ các phần trong yêu cầu của đồ án (giới thiệu, khảo sát, phân tích…) 
++ Văn bản phải được định dạng  và trình bày theo tiêu chuẩn 
++ Có hướng dẫn cài đặt và sử dụng phần mềm 
+File (nộp qua email) 
++ Tập tin readme.txt chứa thông tin của nhóm 
++ Source code  
++ Báo cáo 
++ Script SQL  
+Chuẩn bị dữ liệu demo: 
++ Chuẩn bị đầy đủ dữ liệu trong các bảng biểu của CSDL 
++ Đã có tạo ra được các tài khoản để test 
++ Đã tạo ra được 1 vài giao dịch, công việc 
+ 
+ 
+I 
+Phần trình bày báo cáo 
+ 
+ 
+1.  
+Phần chung: 
+Giới thiệu về HTTT: mô tả công việc của hệ thống, bao gồm các chức năng. Mục tiêu xây dựng hệ thống giải quyết các vấn đề gì: dữ liệu đầu vào/ ra, hệ thống xử lý 
+Vẽ đầy đủ các sơ đồ: sơ đồ chức năng, sơ đồ ngữ cảnh, luồng dữ liệu mức đỉnh, dưới đỉnh 
+Tối đa 10 điểm 
+ 
+
+2.  
+Thiết kế HTTT:  
+Thiết kế CSDL (5 đ): 
++ Lược đồ CSDL được thiết kế dựa vào các kho dữ liệu đã phân tích ở trên 
++ Bảng mô tả các bảng và các thuộc tính của bảng. 
+Thiết kế giao diện: 
++ (5 đ) Đưa ra hình ảnh, giới thiệu chi tiết các chức năng và hoạt động của phần mềm. 
+Tối đa 10 điểm 
+ 
+4 
+Tổng kết 
+Phương án cài đặt cho hệ thống vừa được thiết kế xây dựng. Tài liệu hướng dẫn sử dụng. 
+Ưu nhược điểm và hướng phát triển. 
+10 điểm 
+ 
+TỔNG CỘNG I 
+30 điểm 
+ 
+II 
+Xây dựng phần mềm 
+ điểm 
+ 
+1. 
+Thiết kế và cài đặt CSDL  
++ CSDL được thiết kế với đầy đủ các bảng. 
++ Các bảng dữ liệu phải có dữ liệu thử để demo. 
+Tối đa 
+20 đ 
+ 
+ 
+2. 
+Giao diện ADMIN:  
+Giao diện của Admin server phải tách biệt với giao diện của người quản lý kho và người bán hàng  
+Admin quản lý user: (như thế nào??? thêm xóa sửa phân quyền) 
+10 điểm 
+ 
+III. Lưu ý: nhóm thực hiện đề tài chọn một trong 2 mục A hoặc B để triển khai
+A
+Mua hàng
+
+
+A3
+Người mua hàng: 
+Xem được thông tin hàng hoá, số lượng. 
+Tìm kiếm dữ liệu hàng hoá. 
+Lọc được theo giá bán, tên sản phẩm. 
+Thực hiện các chức năng mua hàng. 
+20 điểm 
+ 
+A4. 
+Nhân viên bán hàng
+Duyệt đơn hàng
+Huỷ đơn hàng
+In hoá đơn bán hàng, lưu trữ.  
+Xem hoá đơn bán hàng trong thời điểm tuỳ chọn 
+Xem thống kê, báo cáo bán hàng.
+Thêm xóa sửa sản phẩm
+Lưu ý: khi duyệt đơn hàng, số sản phầm trong kho bị giảm đi, khi hủy đơn hàng, số sản phẩm sẽ được trả lại 
+20 điểm 
+ 
+B
+Nhập xuất kho
+
+
+B3
+Nhân viên kho:
+Xem được thông tin hàng hoá, số lượng. 
+Tìm kiếm dữ liệu hàng hoá. 
+Lọc được theo giá bán, tên sản phẩm. 
+Lập được phiếu xuất kho/ phiếu nhập kho
+Lưu ý: khi xuất kho, số liệu hàng hóa trong kho sẽ giảm đi, nhập kho, số lượng hàng hóa sẽ tăng lên
+20 điểm 
+
+B4 
+Quản lý kho: 
+Thêm, sửa, xoá sản phẩm. 
+Thêm, sửa, xoá nhà cung cấp. 
+Tìm kiếm, sắp xếp theo sản phẩm, theo nhà cung cấp. 
+In và lưu trữ phiếu nhập kho. 
+Xem và thống kê lịch sử nhập kho theo tuỳ chọn tháng, năm. 
+20 điểm 
+ 
+
+TỔNG CỘNG II 
+70 điểm 
+ 
+
+ĐIỂM ĐỒ ÁN = (TCI + TCII) 
+
+ 100
+ 
+ 
+
+Danh sách các đề tài gợi ý:
+Hệ thống quản lý bán hàng
+Hệ thống quản lý việc đăng ký khám chữa bệnh ở bệnh viện
+Hệ thống quản lý việc tiêm chủng ở phòng khám
+Hệ thống quản lý việc đặt vé chuyến bay
+Hệ thống quản lý tài khoản tiền gửi ngân hàng
+Hệ thống quản lý điểm chuẩn tuyển sinh ở trường đại học
+Hệ thống quản lý việc trao đổi hàng hoá phi lợi nhuận

@@ -373,6 +373,11 @@ public class TaiKhoanPanel extends JPanel {
                 continue;
             }
             tk.setMatKhau(ketQua.get("mk1"));
+            String loi = kho.suaTaiKhoan(tk);
+            if (loi != null) {
+                ThongBao.loi(this, loi);
+                return;
+            }
             taiLaiBang();
             ThongBao.thongTin(this, "Đã đổi mật khẩu thành công.");
             return;
@@ -396,6 +401,11 @@ public class TaiKhoanPanel extends JPanel {
             return;
         }
         tk.setTrangThai(dangHoatDong ? AppConstants.TRANG_THAI_KHOA : AppConstants.TRANG_THAI_HOAT_DONG);
+        String loi = kho.suaTaiKhoan(tk);
+        if (loi != null) {
+            ThongBao.loi(this, loi);
+            return;
+        }
         taiLaiBang();
         ThongBao.thongTin(this, "Đã " + hanhDong + " tài khoản.");
     }
